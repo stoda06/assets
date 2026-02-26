@@ -57,16 +57,35 @@ class LoginRequiredMiddleware:
         next_url = request.POST.get('next', request.GET.get('next', '/'))
         remote_addr = request.META.get('REMOTE_ADDR', 'unknown')
         logger.info("Login attempt for user=%r from %s", username, remote_addr)
-        user = authenticate(request, username=username, password=password)
+        try:
+            user = authenticate(request, username=username, password=password)
+        except Exception:
+            logger.exception(
+                "Authentication error for user=%r from %s", username, remote_addr,
+            )
+            return self._render_login(
+                request,
+                error="Unable to contact Active Directory. Please try again later or contact IT.",
+            )
         if user is not None:
+            backend_used = getattr(user, 'backend', '')
+            if backend_used != 'django_auth_ldap.backend.LDAPBackend':
+                logger.warning(
+                    "User %r authenticated via %s instead of LDAP from %s",
+                    username, backend_used, remote_addr,
+                )
+                return self._render_login(
+                    request,
+                    error="Authentication must use Active Directory. Local database login is not permitted.",
+                )
             login(request, user)
-            logger.info("Login successful for user=%r from %s", username, remote_addr)
+            logger.info("Login successful for user=%r via LDAP from %s", username, remote_addr)
             return redirect(next_url)
         logger.warning(
             "Login failed for user=%r from %s (authenticate returned None)",
             username, remote_addr,
         )
-        return self._render_login(request, error=True)
+        return self._render_login(request, error="Invalid username or password.")
 
     def _render_login(self, request, error=False):
         get_token(request)
