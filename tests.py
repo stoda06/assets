@@ -1,10 +1,11 @@
 from unittest.mock import patch
 
+from django.http import JsonResponse
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 from django.urls.exceptions import Resolver404
 
-from .middleware import ErrorHandlerMiddleware
+from .middleware import ErrorHandlerMiddleware, LoginRequiredMiddleware
 from .models import Laptops_records, Mobile_records, location_details
 from .views import Laptops_data, Mobile_data, custom_404, custom_500
 
@@ -208,6 +209,38 @@ class CustomErrorHandlerTest(TestCase):
         request = self.factory.get('/')
         response = custom_500(request)
         self.assertEqual(response.status_code, 500)
+
+
+class LoginRequiredMiddlewareTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.middleware = LoginRequiredMiddleware(
+            get_response=lambda r: JsonResponse({"ok": True})
+        )
+        self.user = User.objects.create_user(
+            username='testuser', password='testpass'
+        )
+
+    def test_unauthenticated_user_is_redirected(self):
+        from django.contrib.auth.models import AnonymousUser
+        request = self.factory.get('/laptop/search/')
+        request.user = AnonymousUser()
+        response = self.middleware(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
+
+    def test_authenticated_user_passes_through(self):
+        request = self.factory.get('/laptop/search/')
+        request.user = self.user
+        response = self.middleware(request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_login_url_is_exempt(self):
+        from django.contrib.auth.models import AnonymousUser
+        request = self.factory.get('/accounts/login/')
+        request.user = AnonymousUser()
+        response = self.middleware(request)
+        self.assertEqual(response.status_code, 200)
 
 
 class ErrorHandlerMiddlewareTest(TestCase):
