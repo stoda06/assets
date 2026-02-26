@@ -16,6 +16,14 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 
+def custom_404(request, exception):
+    return render(request, '404.html', status=404)
+
+
+def custom_500(request):
+    return render(request, '500.html', status=500)
+
+
 @login_required
 def dashboard(request):
     return render(request, 'index.html', context={})
@@ -23,10 +31,14 @@ def dashboard(request):
 
 @login_required
 def asset(request):
-    location_name = location_details.objects.all()
-    LapMake = Lapmake_details.objects.all()
-    MobMake = Mobmake_details.objects.all()
-    Laptop_data = Laptops_records.objects.all()
+    try:
+        location_name = location_details.objects.all()
+        LapMake = Lapmake_details.objects.all()
+        MobMake = Mobmake_details.objects.all()
+        Laptop_data = Laptops_records.objects.all()
+    except Exception:
+        logger.exception("Database error loading asset data")
+        return render(request, '500.html', status=500)
 
     user = request.user
     first_name = request.user.first_name
@@ -72,6 +84,8 @@ def Laptops_data(request):
         return JsonResponse({"RAM_lower": 'RAM_lower', 'txt_black_error': 'RAM'})
 
     HDDType = request.POST.get('inputLapHDDType')
+    if not HDDType:
+        return JsonResponse({"error": 'error', 'txt_black_error': 'HDD Type'})
 
     LapHDD = request.POST.get('inputLapHDD')
     if not LapHDD:
@@ -105,24 +119,28 @@ def Laptops_data(request):
 
     LapHDD = LapHDD + ' ' + HDDType
 
-    condition1 = Q(Lapassetid=Lapassetid)
-    condition2 = Q(Lapuname=Lapuname)
-    combined_condition = condition1 | condition2
+    try:
+        condition1 = Q(Lapassetid=Lapassetid)
+        condition2 = Q(Lapuname=Lapuname)
+        combined_condition = condition1 | condition2
 
-    if Laptops_records.objects.filter(combined_condition).exists():
-        return JsonResponse({'exists': 'exists'})
+        if Laptops_records.objects.filter(combined_condition).exists():
+            return JsonResponse({'exists': 'exists'})
 
-    Laptops_records.objects.create(
-        LapMake=LapMake,
-        LapModel=LapModel,
-        LapRAM=LapRAM,
-        LapHDD=LapHDD,
-        LapProcessor=LapProcessor,
-        Lappurchasedate=Lappurchasedate,
-        LapSerialNo=LapSerialNo,
-        Lapassetid=Lapassetid,
-        Lapuname=Lapuname,
-    )
+        Laptops_records.objects.create(
+            LapMake=LapMake,
+            LapModel=LapModel,
+            LapRAM=LapRAM,
+            LapHDD=LapHDD,
+            LapProcessor=LapProcessor,
+            Lappurchasedate=Lappurchasedate,
+            LapSerialNo=LapSerialNo,
+            Lapassetid=Lapassetid,
+            Lapuname=Lapuname,
+        )
+    except Exception:
+        logger.exception("Database error saving laptop record")
+        return JsonResponse({"error": "A server error occurred"}, status=500)
     return JsonResponse({'success': 'success', 'sys': 'sys_name'})
 
 
@@ -157,26 +175,34 @@ def Mobile_data(request):
 
     Mobuname = request.POST.get('inputMobuname')
 
-    condition1 = Q(Mobassetid=Mobassetid)
-    condition2 = Q(imei_number=imei_number)
-    combined_condition = condition1 | condition2
+    try:
+        condition1 = Q(Mobassetid=Mobassetid)
+        condition2 = Q(imei_number=imei_number)
+        combined_condition = condition1 | condition2
 
-    if Mobile_records.objects.filter(combined_condition).exists():
-        return JsonResponse({'exists': 'exists'})
+        if Mobile_records.objects.filter(combined_condition).exists():
+            return JsonResponse({'exists': 'exists'})
 
-    Mobile_records.objects.create(
-        Mobassetid=Mobassetid,
-        MobSerialNo=MobSerialNo,
-        imei_number=imei_number,
-        MobMake=MobMake,
-        MobModel=MobModel,
-        Mobpurchasedate=Mobpurchasedate,
-        Mobuname=Mobuname,
-    )
+        Mobile_records.objects.create(
+            Mobassetid=Mobassetid,
+            MobSerialNo=MobSerialNo,
+            imei_number=imei_number,
+            MobMake=MobMake,
+            MobModel=MobModel,
+            Mobpurchasedate=Mobpurchasedate,
+            Mobuname=Mobuname,
+        )
+    except Exception:
+        logger.exception("Database error saving mobile record")
+        return JsonResponse({"error": "A server error occurred"}, status=500)
     return JsonResponse({'success': 'success', 'sys': 'sys_name'})
 
 
 @login_required
 def Asset_location_details(request):
-    loc_names = location_details.objects.all()
+    try:
+        loc_names = location_details.objects.all()
+    except Exception:
+        logger.exception("Database error loading location details")
+        return render(request, '500.html', status=500)
     return render(request, 'your_app/item_dropdown.html', {'location_name': loc_names})

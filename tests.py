@@ -1,8 +1,10 @@
+from unittest.mock import patch
+
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 
 from .models import Laptops_records, Mobile_records, location_details
-from .views import Laptops_data, Mobile_data
+from .views import Laptops_data, Mobile_data, custom_404, custom_500
 
 
 class LaptopRecordModelTest(TestCase):
@@ -189,3 +191,82 @@ class MobileDataViewTest(TestCase):
         request.user = self.user
         response = Mobile_data(request)
         self.assertIn(b'exists', response.content)
+
+
+class CustomErrorHandlerTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_custom_404_returns_404_status(self):
+        request = self.factory.get('/nonexistent/')
+        response = custom_404(request, Exception("Not found"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_custom_500_returns_500_status(self):
+        request = self.factory.get('/')
+        response = custom_500(request)
+        self.assertEqual(response.status_code, 500)
+
+
+class LaptopsDataExceptionHandlingTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username='testuser', password='testpass'
+        )
+
+    def test_post_missing_hdd_type_returns_error(self):
+        request = self.factory.post('/Laptops_data/', {
+            'inputLapMake': 'Dell',
+            'inputLapModel': 'Latitude',
+            'inputLapRAM': '16',
+            'inputLapHDD': '512',
+            'inputLapProcessor': 'Intel i7',
+            'inputLapSerialNo': 'SN-100',
+            'inputLapassetid': 'ASSET-100',
+            'inputLapuname': 'newuser',
+        })
+        request.user = self.user
+        response = Laptops_data(request)
+        self.assertIn(b'HDD Type', response.content)
+
+    @patch('assets.views.Laptops_records.objects')
+    def test_post_database_error_returns_500(self, mock_objects):
+        mock_objects.filter.return_value.exists.side_effect = Exception("DB error")
+        request = self.factory.post('/Laptops_data/', {
+            'inputLapMake': 'Dell',
+            'inputLapModel': 'Latitude',
+            'inputLapRAM': '16',
+            'inputLapHDDType': 'GB',
+            'inputLapHDD': '512',
+            'inputLapProcessor': 'Intel i7',
+            'inputLapSerialNo': 'SN-100',
+            'inputLapassetid': 'ASSET-100',
+            'inputLapuname': 'newuser',
+        })
+        request.user = self.user
+        response = Laptops_data(request)
+        self.assertEqual(response.status_code, 500)
+
+
+class MobileDataExceptionHandlingTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username='testuser', password='testpass'
+        )
+
+    @patch('assets.views.Mobile_records.objects')
+    def test_post_database_error_returns_500(self, mock_objects):
+        mock_objects.filter.return_value.exists.side_effect = Exception("DB error")
+        request = self.factory.post('/Mobile_data/', {
+            'inputMobMake': 'Samsung',
+            'inputMobModel': 'Galaxy S23',
+            'inputMobIMIE': '123456789012345',
+            'inputMobSerialNo': 'MSN-100',
+            'inputMobassetid': 'MOB-100',
+            'inputMobuname': 'mobileuser',
+        })
+        request.user = self.user
+        response = Mobile_data(request)
+        self.assertEqual(response.status_code, 500)
