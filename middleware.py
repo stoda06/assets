@@ -55,10 +55,17 @@ class LoginRequiredMiddleware:
         username = request.POST.get('username', '')
         password = request.POST.get('password', '')
         next_url = request.POST.get('next', request.GET.get('next', '/'))
+        remote_addr = request.META.get('REMOTE_ADDR', 'unknown')
+        logger.info("Login attempt for user=%r from %s", username, remote_addr)
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+            logger.info("Login successful for user=%r from %s", username, remote_addr)
             return redirect(next_url)
+        logger.warning(
+            "Login failed for user=%r from %s (authenticate returned None)",
+            username, remote_addr,
+        )
         return self._render_login(request, error=True)
 
     def _render_login(self, request, error=False):
