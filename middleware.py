@@ -26,17 +26,18 @@ class LoginRequiredMiddleware:
 
     def __call__(self, request):
         login_url = getattr(settings, 'LOGIN_URL', '/accounts/login/')
+        user = getattr(request, 'user', None)
 
         # Serve the login page directly from middleware
         if request.path_info == login_url:
-            if request.user.is_authenticated:
+            if user and user.is_authenticated:
                 next_url = request.GET.get('next', '/')
                 return redirect(next_url)
             if request.method == 'POST':
                 return self._handle_login_post(request, login_url)
             return self._render_login(request)
 
-        if not request.user.is_authenticated:
+        if not user or not user.is_authenticated:
             # Don't redirect admin login
             exempt_paths = ['/admin/login/']
 
