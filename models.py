@@ -1,64 +1,51 @@
 from django.db import models
 
-# Create your models here.
 
-class Laptops_info(models.Model):
-    inputLapassetid = models.CharField(max_length=200,blank=False, null=True)
-    inputLapSerialNo = models.CharField(max_length=200,blank=False, null=True)
-    inputLapMake = models.CharField(max_length=200,blank=False, null=True)
-    inputLapModel = models.CharField(max_length=200,blank=False, null=True)
-    inputLapRAM = models.CharField(max_length=200,blank=False, null=True)
-    inputLapHDD = models.CharField(max_length=200,blank=False, null=True)
-    inputLapProcessor = models.CharField(max_length=200,blank=False, null=True)
-    #inputLapdate = models.DateField(max_length=200)
-    inputLappurchasedate = models.DateField(max_length=200,blank=False, null=True)
-    inputLapuname = models.CharField(max_length=200,blank=False, null=True)
+class Laptops_records(models.Model):
+    Lapassetid = models.CharField(max_length=200, blank=False)
+    LapSerialNo = models.CharField(max_length=200, blank=False)
+    LapMake = models.CharField(max_length=200, blank=False)
+    LapModel = models.CharField(max_length=200, blank=False)
+    LapRAM = models.CharField(max_length=200, blank=False)
+    LapHDD = models.CharField(max_length=200, blank=False)
+    LapProcessor = models.CharField(max_length=200, blank=False)
+    Lappurchasedate = models.DateField(blank=True, null=True)
+    Lapuname = models.CharField(max_length=200, blank=True, default="")
+
     class Meta:
         app_label = 'assets'
 
 
-class Laptops_records(models.Model):
-    Lapassetid = models.CharField(max_length=200,blank=False, null=True)
-    LapSerialNo = models.CharField(max_length=200,blank=False, null=True)
-    LapMake = models.CharField(max_length=200,blank=False, null=True)
-    LapModel = models.CharField(max_length=200,blank=False, null=True)
-    LapRAM = models.CharField(max_length=200,blank=False, null=True)
-    LapHDD = models.CharField(max_length=200,blank=False, null=True)
-    LapProcessor = models.CharField(max_length=200,blank=False, null=True)
-    #inputLapdate = models.DateField(max_length=200)
-    Lappurchasedate = models.DateField(blank=False, null=True,default="")
-    Lapuname = models.CharField(max_length=200,blank=False, null=True)
-
-
 class Mobile_records(models.Model):
-    Mobassetid = models.CharField(max_length=200,blank=False, null=True)
-    MobSerialNo = models.CharField(max_length=200, blank=False, null=True)
-    imei_number  = models.CharField(max_length=200,blank=False, null=True)
-    MobMake = models.CharField(max_length=200,blank=False, null=True)
-    MobModel = models.CharField(max_length=200,blank=False, null=True)
-    Mobpurchasedate = models.DateField(blank=False, null=True)
-    Mobuname = models.CharField(max_length=200, blank=False, null=True)
+    Mobassetid = models.CharField(max_length=200, blank=False)
+    MobSerialNo = models.CharField(max_length=200, blank=False)
+    imei_number = models.CharField(max_length=200, blank=False)
+    MobMake = models.CharField(max_length=200, blank=False)
+    MobModel = models.CharField(max_length=200, blank=False)
+    Mobpurchasedate = models.DateField(blank=True, null=True)
+    Mobuname = models.CharField(max_length=200, blank=True, default="")
+
+    class Meta:
+        app_label = 'assets'
+
 
 class location_details(models.Model):
-    location_name = models.CharField(max_length=200,blank=False, null=True)
-    location_name_val = models.CharField(max_length=200, blank=False, null=True)
+    location_name = models.CharField(max_length=200, blank=False)
+    location_name_val = models.CharField(max_length=200, blank=False)
+
+    class Meta:
+        app_label = 'assets'
+
 
 class Lapmake_details(models.Model):
-    LapMake = models.CharField(max_length=200,blank=False, null=True)
+    LapMake = models.CharField(max_length=200, blank=False)
+
+    class Meta:
+        app_label = 'assets'
+
 
 class Mobmake_details(models.Model):
-    MobMake = models.CharField(max_length=200,blank=False, null=True)
+    MobMake = models.CharField(max_length=200, blank=False)
 
-#from django.db import models
-
-#class SystemInfo(models.Model):
- #   manufacturer = models.CharField(max_length=255)
-  #  model = models.CharField(max_length=255)
-   # processor = models.CharField(max_length=255)
-   # serial_number = models.CharField(max_length=255)
-   # memory = models.FloatField()  # in GB
-   # disk_drive_model = models.CharField(max_length=255)
-   # disk_drive_size = models.FloatField()  # in GB
-   # network_adapter_description = models.CharField(max_length=255)
-   # ip_address = models.CharField(max_length=255)
-   # computer_name = models.CharField(max_length=255)
+    class Meta:
+        app_label = 'assets'
