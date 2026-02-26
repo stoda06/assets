@@ -79,7 +79,28 @@ class LoginRequiredMiddleware:
                     request,
                     error="Authentication must use Active Directory. Local database login is not permitted.",
                 )
-            login(request, user)
+            try:
+                login(request, user)
+            except AttributeError:
+                logger.exception(
+                    "Session not available during login for user=%r from %s — "
+                    "check MIDDLEWARE order (SessionMiddleware must precede "
+                    "LoginRequiredMiddleware)",
+                    username, remote_addr,
+                )
+                return self._render_login(
+                    request,
+                    error="Login failed due to a server configuration error. Please contact IT.",
+                )
+            except Exception:
+                logger.exception(
+                    "Unexpected error during login for user=%r from %s",
+                    username, remote_addr,
+                )
+                return self._render_login(
+                    request,
+                    error="An unexpected error occurred during login. Please try again.",
+                )
             logger.info("Login successful for user=%r via LDAP from %s", username, remote_addr)
             return redirect(next_url)
         logger.warning(
@@ -139,9 +160,15 @@ class ErrorHandlerMiddleware:
     def process_exception(self, request, exception):
         if isinstance(exception, Resolver404):
             logger.warning("Not Found: %s", request.path)
-            html = render_to_string('404.html', request=request)
+            try:
+                html = render_to_string('404.html', request=request)
+            except Exception:
+                html = '<h1>404 — Page Not Found</h1>'
             return HttpResponseNotFound(html)
 
         logger.exception("Internal Server Error: %s", request.path)
-        html = render_to_string('500.html')
+        try:
+            html = render_to_string('500.html')
+        except Exception:
+            html = '<h1>500 — Internal Server Error</h1>'
         return HttpResponseServerError(html)
