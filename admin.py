@@ -5,6 +5,17 @@ from .models import *
 # Register your models here.
 
 
+#class SystemInfoAdmin(admin.ModelAdmin):
+ #   list_display = ('manufacturer',
+#'model',
+#'processor',
+#'serial_number',
+#'memory',
+#'disk_drive_model',
+#'network_adapter_description',
+#'ip_address','computer_name')
+
+
 class Laptops_recordsAdmin(admin.ModelAdmin):
     list_display = ('LapMake',
 'LapModel',
@@ -35,5 +46,6 @@ admin.site.register(Mobmake_details, Mobmake_detailsAdmin)
 admin.site.register(Laptops_records, Laptops_recordsAdmin)
 admin.site.register(Mobile_records, Mobile_recordsAdmin)
 admin.site.register(location_details, location_detailsAdmin)
+#admin.site.register(SystemInfo, SystemInfoAdmin)
 #admin.site.register(make_details, make_detailsAdmin)
 

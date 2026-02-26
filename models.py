@@ -13,6 +13,8 @@ class Laptops_info(models.Model):
     #inputLapdate = models.DateField(max_length=200)
     inputLappurchasedate = models.DateField(max_length=200,blank=False, null=True)
     inputLapuname = models.CharField(max_length=200,blank=False, null=True)
+    class Meta:
+        app_label = 'assets'
 
 
 class Laptops_records(models.Model):
@@ -46,3 +48,17 @@ class Lapmake_details(models.Model):
 
 class Mobmake_details(models.Model):
     MobMake = models.CharField(max_length=200,blank=False, null=True)
+
+#from django.db import models
+
+#class SystemInfo(models.Model):
+ #   manufacturer = models.CharField(max_length=255)
+  #  model = models.CharField(max_length=255)
+   # processor = models.CharField(max_length=255)
+   # serial_number = models.CharField(max_length=255)
+   # memory = models.FloatField()  # in GB
+   # disk_drive_model = models.CharField(max_length=255)
+   # disk_drive_size = models.FloatField()  # in GB
+   # network_adapter_description = models.CharField(max_length=255)
+   # ip_address = models.CharField(max_length=255)
+   # computer_name = models.CharField(max_length=255)
