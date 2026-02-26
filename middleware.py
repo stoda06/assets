@@ -89,11 +89,30 @@ class LoginRequiredMiddleware:
 
     def _render_login(self, request, error=False):
         get_token(request)
-        html = render_to_string(
-            'registration/login.html',
-            {'error': error, 'next': request.GET.get('next', '/')},
-            request=request,
-        )
+        try:
+            html = render_to_string(
+                'registration/login.html',
+                {'error': error, 'next': request.GET.get('next', '/')},
+                request=request,
+            )
+        except Exception:
+            logger.exception("Failed to render login template")
+            csrf_token = get_token(request)
+            error_html = f'<div style="color:red">{error}</div>' if error else ''
+            html = (
+                '<!DOCTYPE html><html><head><title>Log in</title></head>'
+                '<body style="font-family:sans-serif;display:flex;justify-content:center;padding-top:80px">'
+                '<div style="width:360px">'
+                '<h2>Red Education - Sign In</h2>'
+                f'{error_html}'
+                '<form method="post">'
+                f'<input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">'
+                f'<input type="hidden" name="next" value="{request.GET.get("next", "/")}">'
+                '<p><input name="username" placeholder="Username" style="width:100%;padding:8px" autofocus></p>'
+                '<p><input name="password" type="password" placeholder="Password" style="width:100%;padding:8px"></p>'
+                '<p><button type="submit" style="padding:8px 24px">Sign In</button></p>'
+                '</form></div></body></html>'
+            )
         return HttpResponse(html)
 
 
