@@ -2,7 +2,9 @@ from unittest.mock import patch
 
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
+from django.urls.exceptions import Resolver404
 
+from .middleware import ErrorHandlerMiddleware
 from .models import Laptops_records, Mobile_records, location_details
 from .views import Laptops_data, Mobile_data, custom_404, custom_500
 
@@ -205,6 +207,23 @@ class CustomErrorHandlerTest(TestCase):
     def test_custom_500_returns_500_status(self):
         request = self.factory.get('/')
         response = custom_500(request)
+        self.assertEqual(response.status_code, 500)
+
+
+class ErrorHandlerMiddlewareTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.middleware = ErrorHandlerMiddleware(get_response=lambda r: None)
+
+    def test_resolver404_returns_404_response(self):
+        request = self.factory.get('/login.cgi')
+        exc = Resolver404({'tried': [], 'path': 'login.cgi'})
+        response = self.middleware.process_exception(request, exc)
+        self.assertEqual(response.status_code, 404)
+
+    def test_generic_exception_returns_500_response(self):
+        request = self.factory.get('/')
+        response = self.middleware.process_exception(request, Exception("unexpected"))
         self.assertEqual(response.status_code, 500)
 
 

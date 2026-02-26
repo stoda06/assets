@@ -7,6 +7,3 @@ urlpatterns = [
     path('Laptops_data/', views.Laptops_data, name='Laptops_data'),
     path('Mobile_data/', views.Mobile_data, name='Mobile_data'),
 ]
-
-handler404 = 'assets.views.custom_404'
-handler500 = 'assets.views.custom_500'
