@@ -220,14 +220,22 @@ def Asset_location_details(request):
 @permission_classes([AllowAny])
 def systeminfo_create(request):
     """Accept system info from endpoints without requiring authentication."""
-    serial = request.data.get('serial_number')
+    # Flatten any list values to strings (WMI commands return arrays)
+    data = {}
+    for key, value in request.data.items():
+        if isinstance(value, list):
+            data[key] = ", ".join(str(v) for v in value)
+        else:
+            data[key] = value
+
+    serial = data.get('serial_number')
     if serial and SystemInfo.objects.filter(serial_number=serial).exists():
         return Response(
             {"detail": "Duplicate entry", "message": "This record already exists in the database."},
             status=status.HTTP_409_CONFLICT,
         )
 
-    serializer = SystemInfoSerializer(data=request.data)
+    serializer = SystemInfoSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
