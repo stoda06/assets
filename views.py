@@ -4,14 +4,21 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 from .models import (
     Lapmake_details,
     Laptops_records,
     Mobile_records,
     Mobmake_details,
+    SystemInfo,
     location_details,
 )
+from .serializers import SystemInfoSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -206,3 +213,22 @@ def Asset_location_details(request):
         logger.exception("Database error loading location details")
         return render(request, '500.html', status=500)
     return render(request, 'your_app/item_dropdown.html', {'location_name': loc_names})
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def systeminfo_create(request):
+    """Accept system info from endpoints without requiring authentication."""
+    serial = request.data.get('serial_number')
+    if serial and SystemInfo.objects.filter(serial_number=serial).exists():
+        return Response(
+            {"detail": "Duplicate entry", "message": "This record already exists in the database."},
+            status=status.HTTP_409_CONFLICT,
+        )
+
+    serializer = SystemInfoSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

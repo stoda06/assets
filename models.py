@@ -49,3 +49,23 @@ class Mobmake_details(models.Model):
 
     class Meta:
         app_label = 'assets'
+
+
+class SystemInfo(models.Model):
+    manufacturer = models.CharField(max_length=255)
+    model = models.CharField(max_length=255)
+    processor = models.CharField(max_length=255)
+    serial_number = models.CharField(max_length=255, unique=True)
+    memory = models.CharField(max_length=50)
+    disk_size = models.CharField(max_length=50)
+    Username = models.CharField(max_length=255, blank=True, default="")
+    Location_name = models.CharField(max_length=255, blank=True, default="")
+    system_name = models.CharField(max_length=255, blank=True, default="")
+    asset_id = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'assets'
+
+    def __str__(self):
+        return f"{self.manufacturer} {self.model} ({self.serial_number})"
