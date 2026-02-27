@@ -39,7 +39,7 @@ class LoginRequiredMiddleware:
 
         if not request.user.is_authenticated:
             # Don't redirect admin login or unauthenticated API endpoints
-            exempt_paths = ['/admin/login/', '/api/systeminfo/']
+            exempt_prefixes = ['/admin/login/', '/api/systeminfo']
 
             # Add any exempt URLs from settings
             exempt_patterns = getattr(settings, 'LOGIN_EXEMPT_URLS', [])
@@ -47,7 +47,7 @@ class LoginRequiredMiddleware:
                 if re.match(pattern, request.path_info.lstrip('/')):
                     return self.get_response(request)
 
-            if request.path_info not in exempt_paths:
+            if not any(request.path_info.startswith(p) for p in exempt_prefixes):
                 return redirect(f'{login_url}?next={request.path_info}')
 
         return self.get_response(request)
