@@ -20,3 +20,9 @@ class SystemInfoSerializer(serializers.ModelSerializer):
         model = SystemInfo
         fields = '__all__'
         read_only_fields = ['id', 'created_at']
+
+    def validate_processor(self, value):
+        """Handle WMI returning processor info as a list."""
+        if isinstance(value, list):
+            return ", ".join(str(v) for v in value)
+        return value
