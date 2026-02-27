@@ -228,6 +228,16 @@ def systeminfo_create(request):
         else:
             data[key] = value
 
+    # Skip virtual machines — don't store VMware entries
+    vmware_fields = ['manufacturer', 'model', 'serial_number', 'processor']
+    for field in vmware_fields:
+        val = data.get(field, '')
+        if isinstance(val, str) and 'vmware' in val.lower():
+            return Response(
+                {"detail": "Rejected", "message": "Virtual machine data is not collected."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
     serial = data.get('serial_number')
     if serial and SystemInfo.objects.filter(serial_number=serial).exists():
         return Response(
