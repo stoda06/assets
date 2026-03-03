@@ -1,6 +1,6 @@
 import logging
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_not_required, login_required
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -217,6 +217,7 @@ def Asset_location_details(request):
     return render(request, 'your_app/item_dropdown.html', {'location_name': loc_names})
 
 
+@login_not_required
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
