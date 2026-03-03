@@ -625,16 +625,47 @@
               <!-- Table row -->
               <div class="row">
                 <div class="col-12 table-responsive">
-                  <table id = "example1" class="table table-striped">
-                   <thead>
-
-
+                  <table id="example1" class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Manufacturer</th>
+                        <th>Model</th>
+                        <th>Processor</th>
+                        <th>Serial Number</th>
+                        <th>Memory</th>
+                        <th>Disk Size</th>
+                        <th>Location</th>
+                        <th>Username</th>
+                        <th>Asset ID</th>
+                        <th>System Name</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
                     <tbody>
-
-
-        </tbody>
-
-
+                      {% for device in device_data %}
+                      <tr id="device-row-{{ device.id }}">
+                        <td>{{ device.manufacturer }}</td>
+                        <td>{{ device.model }}</td>
+                        <td>{{ device.processor }}</td>
+                        <td>{{ device.serial_number }}</td>
+                        <td>{{ device.memory }}</td>
+                        <td>{{ device.disk_size }}</td>
+                        <td>{{ device.Location_name }}</td>
+                        <td>{{ device.Username }}</td>
+                        <td>{{ device.asset_id }}</td>
+                        <td>{{ device.system_name }}</td>
+                        <td>
+                          <button type="button" class="btn btn-sm btn-danger delete-device-btn" data-id="{{ device.id }}" data-serial="{{ device.serial_number }}">
+                            <i class="fas fa-trash"></i> Delete
+                          </button>
+                        </td>
+                      </tr>
+                      {% empty %}
+                      <tr>
+                        <td colspan="11" class="text-center">No device records found.</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
                   </table>
                 </div>
                 <!-- /.col -->
@@ -1060,6 +1091,45 @@
 <script src="{% static 'js/assets.js'%}"> </script>
 <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
 
+<script>
+$(document).on('click', '.delete-device-btn', function() {
+    var deviceId = $(this).data('id');
+    var serialNumber = $(this).data('serial');
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Delete device with serial number: ' + serialNumber + '?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '{% url "delete_device" %}',
+                type: 'POST',
+                data: {
+                    'device_id': deviceId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#device-row-' + deviceId).fadeOut(400, function() {
+                            $(this).remove();
+                        });
+                        Swal.fire('Deleted!', 'The device record has been deleted.', 'success');
+                    } else {
+                        Swal.fire('Error!', response.error || 'Failed to delete record.', 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error!', 'An error occurred while deleting the record.', 'error');
+                }
+            });
+        }
+    });
+});
+</script>
 
 <script>
 $( document ).ready(function() {
