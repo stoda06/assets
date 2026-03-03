@@ -43,6 +43,7 @@ def asset(request):
         LapMake = Lapmake_details.objects.all()
         MobMake = Mobmake_details.objects.all()
         Laptop_data = Laptops_records.objects.all()
+        device_data = SystemInfo.objects.all()
     except Exception:
         logger.exception("Database error loading asset data")
         return render(request, '500.html', status=500)
@@ -61,6 +62,7 @@ def asset(request):
         'LapMake': LapMake,
         'MobMake': MobMake,
         'Laptop_data': Laptop_data,
+        'device_data': device_data,
     }
     return render(request, 'laptop_asset.html', context)
 
@@ -232,3 +234,23 @@ def systeminfo_create(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@login_required
+def delete_device(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+
+    device_id = request.POST.get('device_id')
+    if not device_id:
+        return JsonResponse({"error": "Device ID is required"}, status=400)
+
+    try:
+        device = SystemInfo.objects.get(id=device_id)
+        device.delete()
+    except SystemInfo.DoesNotExist:
+        return JsonResponse({"error": "Record not found"}, status=404)
+    except Exception:
+        logger.exception("Database error deleting device record")
+        return JsonResponse({"error": "A server error occurred"}, status=500)
+    return JsonResponse({"success": "success"})
