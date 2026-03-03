@@ -1,5 +1,7 @@
 import logging
 
+import json
+
 from django.contrib.auth.decorators import login_not_required, login_required
 from django.db.models import Q
 from django.http import JsonResponse
@@ -217,20 +219,30 @@ def Asset_location_details(request):
 
 @login_not_required
 @csrf_exempt
-@api_view(['POST'])
-@authentication_classes([])
-@permission_classes([AllowAny])
 def systeminfo_create(request):
     """Accept system info from endpoints without requiring authentication."""
-    serial = request.data.get('serial_number')
+    if request.method != 'POST':
+        return JsonResponse({"detail": "Method not allowed."}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"detail": "Invalid JSON."}, status=400)
+
+    # Handle WMI returning processor info as a list
+    processor = data.get('processor', '')
+    if isinstance(processor, list):
+        data['processor'] = ', '.join(str(v) for v in processor)
+
+    serial = data.get('serial_number')
     if serial and SystemInfo.objects.filter(serial_number=serial).exists():
-        return Response(
+        return JsonResponse(
             {"detail": "Duplicate entry", "message": "This record already exists in the database."},
-            status=status.HTTP_409_CONFLICT,
+            status=409,
         )
 
-    serializer = SystemInfoSerializer(data=request.data)
+    serializer = SystemInfoSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(serializer.data, status=201)
+    return JsonResponse(serializer.errors, status=400)
