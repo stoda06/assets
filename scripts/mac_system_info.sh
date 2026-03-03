@@ -96,9 +96,14 @@ EOF
 echo "Sending data to ${SERVER_URL}/api/systeminfo/ ..."
 echo ""
 
+HEADER_FILE=$(mktemp)
+trap 'rm -f "$HEADER_FILE"' EXIT
+
 HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
+    -D "$HEADER_FILE" \
     -X POST \
     -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
     -d "$JSON_PAYLOAD" \
     "${SERVER_URL}/api/systeminfo/")
 
@@ -113,6 +118,10 @@ if [ "$HTTP_STATUS" -eq 201 ]; then
     echo "Success: System info submitted."
 elif [ "$HTTP_STATUS" -eq 409 ]; then
     echo "Notice: This machine (serial: $SERIAL_NUMBER) is already registered."
+elif [ "$HTTP_STATUS" -ge 300 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+    LOCATION=$(grep -i '^Location:' "$HEADER_FILE" | sed 's/^[Ll]ocation: *//' | tr -d '\r')
+    echo "Error: Server returned redirect (HTTP $HTTP_STATUS) to: $LOCATION"
+    exit 1
 else
     echo "Error: Server returned HTTP $HTTP_STATUS."
     exit 1
