@@ -55,6 +55,12 @@ USERNAME=$(id -un)
 SYSTEM_NAME=$(scutil --get ComputerName 2>/dev/null || hostname -s)
 
 # ---------------------------------------------------------------------------
+# Location — derived from the system timezone abbreviation
+# The server uses this to determine region (AUS, US, SIN, IND, etc.)
+# ---------------------------------------------------------------------------
+LOCATION_NAME=$(date +%Z)
+
+# ---------------------------------------------------------------------------
 # Display collected info
 # ---------------------------------------------------------------------------
 echo "===== Mac System Information ====="
@@ -66,6 +72,7 @@ echo "Memory       : $MEMORY"
 echo "Disk Size    : $DISK_SIZE"
 echo "Username     : $USERNAME"
 echo "System Name  : $SYSTEM_NAME"
+echo "Location     : $LOCATION_NAME"
 echo "=================================="
 echo ""
 
@@ -85,7 +92,9 @@ JSON_PAYLOAD=$(cat <<EOF
     "memory": $(json_escape "$MEMORY"),
     "disk_size": $(json_escape "$DISK_SIZE"),
     "Username": $(json_escape "$USERNAME"),
-    "system_name": $(json_escape "$SYSTEM_NAME")
+    "system_name": $(json_escape "$SYSTEM_NAME"),
+    "Location_name": $(json_escape "$LOCATION_NAME"),
+    "asset_id": "PENDING"
 }
 EOF
 )
