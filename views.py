@@ -1,5 +1,7 @@
 import logging
 
+import json
+
 from django.contrib.auth.decorators import login_not_required, login_required
 from django.db.models import Q
 from django.http import JsonResponse
@@ -219,9 +221,6 @@ def Asset_location_details(request):
 
 @login_not_required
 @csrf_exempt
-@api_view(['POST'])
-@authentication_classes([])
-@permission_classes([AllowAny])
 def systeminfo_create(request):
     """Accept system info from endpoints without requiring authentication."""
     # Flatten any list values to strings (WMI commands return arrays)
@@ -244,33 +243,13 @@ def systeminfo_create(request):
 
     serial = data.get('serial_number')
     if serial and SystemInfo.objects.filter(serial_number=serial).exists():
-        return Response(
+        return JsonResponse(
             {"detail": "Duplicate entry", "message": "This record already exists in the database."},
-            status=status.HTTP_409_CONFLICT,
+            status=409,
         )
 
     serializer = SystemInfoSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@login_required
-def delete_device(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
-
-    device_id = request.POST.get('device_id')
-    if not device_id:
-        return JsonResponse({"error": "Device ID is required"}, status=400)
-
-    try:
-        device = SystemInfo.objects.get(id=device_id)
-        device.delete()
-    except SystemInfo.DoesNotExist:
-        return JsonResponse({"error": "Record not found"}, status=404)
-    except Exception:
-        logger.exception("Database error deleting device record")
-        return JsonResponse({"error": "A server error occurred"}, status=500)
-    return JsonResponse({"success": "success"})
+        return JsonResponse(serializer.data, status=201)
+    return JsonResponse(serializer.errors, status=400)
