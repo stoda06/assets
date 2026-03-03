@@ -6,27 +6,15 @@
 # to the assets management Django API (SystemInfo endpoint).
 #
 # Usage:
-#   ./mac_system_info.sh <server_url>
-#
-# Example:
-#   ./mac_system_info.sh https://assets.example.com
+#   ./mac_system_info.sh
 #
 # The script gathers: manufacturer, model, processor, serial number,
 # memory, disk size, username, and system name, then POSTs the data
-# as JSON to <server_url>/systeminfo/
+# as JSON to the assets server.
 
 set -euo pipefail
 
-# ---------------------------------------------------------------------------
-# Validate arguments
-# ---------------------------------------------------------------------------
-if [ $# -lt 1 ]; then
-    echo "Usage: $0 <server_url>"
-    echo "Example: $0 https://assets.example.com"
-    exit 1
-fi
-
-SERVER_URL="${1%/}"  # strip trailing slash
+SERVER_URL="https://assets.rededucation.com:8443"
 
 # ---------------------------------------------------------------------------
 # Collect hardware info via system_profiler
