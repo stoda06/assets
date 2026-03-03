@@ -125,7 +125,7 @@ echo ""
 
 if [ "$HTTP_STATUS" -eq 201 ]; then
     echo "Success: System info submitted."
-elif [ "$HTTP_STATUS" -eq 409 ]; then
+elif echo "$HTTP_BODY" | grep -q "Duplicate entry"; then
     echo "Notice: This machine (serial: $SERIAL_NUMBER) is already registered."
 elif [ "$HTTP_STATUS" -ge 300 ] && [ "$HTTP_STATUS" -lt 400 ]; then
     LOCATION=$(grep -i '^Location:' "$HEADER_FILE" | sed 's/^[Ll]ocation: *//' | tr -d '\r')
