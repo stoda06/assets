@@ -93,14 +93,14 @@ EOF
 # ---------------------------------------------------------------------------
 # POST to the server
 # ---------------------------------------------------------------------------
-echo "Sending data to ${SERVER_URL}/systeminfo/ ..."
+echo "Sending data to ${SERVER_URL}/api/systeminfo/ ..."
 echo ""
 
 HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
     -X POST \
     -H "Content-Type: application/json" \
     -d "$JSON_PAYLOAD" \
-    "${SERVER_URL}/systeminfo/")
+    "${SERVER_URL}/api/systeminfo/")
 
 HTTP_BODY=$(echo "$HTTP_RESPONSE" | sed '$d')
 HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -1)
